@@ -1,10 +1,8 @@
-import express, {
-  type Application,
-  type Request,
-  type Response,
-} from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import express, { type Application } from 'express';
+import { authRouter } from './modules/auth/auth.route';
+import { issueRouter } from './modules/issue/issue.route';
 
 const app: Application = express();
 
@@ -18,10 +16,7 @@ app.use(
   }),
 );
 
-app.get('/', (req: Request, res: Response) => {
-  res.status(200).json({
-    message: 'Hello World!',
-  });
-});
+app.use('/api/auth', authRouter);
+app.use('/api/issues', issueRouter);
 
 export default app;
