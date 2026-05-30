@@ -14,6 +14,12 @@ export enum ISSUE_TYPE {
   FEATURE_REQUEST = 'feature_request',
 }
 
+export type IssueFilters = {
+  sort?: 'newest' | 'oldest';
+  type?: ISSUE_TYPE;
+  status?: ISSUE_STATUS;
+};
+
 export interface IResponse<T> {
   statusCode: number;
   success: boolean;
