@@ -10,7 +10,7 @@ const createAnIssue = async (req: Request, res: Response) => {
       statusCode: 201,
       success: true,
       message: 'Issue created successfully',
-      data: result.rows?.[0],
+      data: result,
     });
   } catch (error) {
     serverError(res, error);
@@ -20,16 +20,17 @@ const createAnIssue = async (req: Request, res: Response) => {
 const getAllIssues = async (req: Request, res: Response) => {
   try {
     const { sort, type, status } = req.query;
-    const result = await issueService.getAllIssuesFromDB({
+    const data = await issueService.getAllIssuesFromDB({
       sort,
       type,
       status,
     } as IssueFilters);
+
     return sendResponse(res, {
       statusCode: 200,
       success: true,
       message: 'Issues retrieved successfully',
-      data: result.rows,
+      data,
     });
   } catch (error) {
     serverError(res, error);
@@ -38,16 +39,29 @@ const getAllIssues = async (req: Request, res: Response) => {
 
 const getSingleIssue = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
+    const issue = await issueService.getSingleIssueFromDB(id as string);
+
+    if (!issue) {
+      return sendResponse(res, {
+        statusCode: 404,
+        success: false,
+        message: 'Issue not found',
+        data: issue,
+      });
+    }
+
     return sendResponse(res, {
       statusCode: 200,
       success: true,
       message: 'Issue retrieved successfully',
-      data: {},
+      data: issue,
     });
   } catch (error) {
     serverError(res, error);
   }
 };
+
 const updateAnIssue = async (req: Request, res: Response) => {
   try {
     return sendResponse(res, {

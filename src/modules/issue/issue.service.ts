@@ -34,7 +34,7 @@ const createIssueToDB = async (reporter_id: number, payload: Issue) => {
     [title, description, type, status, reporter_id],
   );
 
-  return result;
+  return result.rows?.[0];
 };
 
 const getAllIssuesFromDB = async (filters: IssueFilters = {}) => {
@@ -69,10 +69,35 @@ const getAllIssuesFromDB = async (filters: IssueFilters = {}) => {
     values,
   );
 
-  return result;
+  return result.rows;
+};
+
+const getSingleIssueFromDB = async (id: string) => {
+  const result = await pool.query(
+    `SELECT
+       i.id,
+       i.title,
+       i.description,
+       i.type,
+       i.status,
+       json_build_object(
+         'id', u.id,
+         'name', u.name,
+         'role', u.role
+       ) AS reporter,
+       i.created_at,
+       i.updated_at
+     FROM issues i
+     JOIN users u ON u.id = i.reporter_id
+     WHERE i.id = $1`,
+    [id],
+  );
+
+  return result.rows?.[0] ?? undefined;
 };
 
 export const issueService = {
   createIssueToDB,
   getAllIssuesFromDB,
+  getSingleIssueFromDB,
 };
