@@ -69,8 +69,21 @@ const getAllIssuesFromDB = async (filters: IssueFilters = {}) => {
      ORDER BY created_at ${orderDirection}`,
     values,
   );
+  const reporterIds = [...new Set(result.rows.map((_r) => _r.reporter_id))];
 
-  return result.rows;
+  const reportersResult = await pool.query(
+    `SELECT id, name, role FROM users WHERE id = ANY($1)`,
+    [reporterIds],
+  );
+
+  const reporterMap = Object.fromEntries(
+    reportersResult.rows.map((r) => [r.id, r]),
+  );
+
+  return result.rows.map((_r) => ({
+    ..._r,
+    reporter: reporterMap[_r.reporter_id] ?? null,
+  }));
 };
 
 const getSingleIssueFromDB = async (id: string) => {
