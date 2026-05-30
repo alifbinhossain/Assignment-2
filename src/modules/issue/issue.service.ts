@@ -1,3 +1,4 @@
+import type { JwtPayload } from 'jsonwebtoken';
 import { pool } from '../../db';
 import { ISSUE_STATUS, ISSUE_TYPE, type IssueFilters } from '../../types';
 import type { Issue } from './issue.interface';
@@ -96,10 +97,29 @@ const getSingleIssueFromDB = async (id: string) => {
   return result.rows?.[0] ?? undefined;
 };
 
-const updateIssueToDB = async (id: string, payload: Issue) => {
+const updateIssueToDB = async (
+  id: string,
+  user: JwtPayload,
+  payload: Issue,
+) => {
   const { title, description, type, status } = payload;
 
-  console.log({ payload });
+  if (user.role === 'contributor') {
+    const issueResult = await pool.query(
+      `SELECT reporter_id FROM issues WHERE id = $1`,
+      [id],
+    );
+
+    const issue = issueResult.rows?.[0];
+
+    if (!issue) {
+      throw new Error('Issue not found');
+    }
+
+    if (issue.reporter_id !== user.id) {
+      throw new Error('You are not authorized to update this issue');
+    }
+  }
 
   const result = await pool.query(
     `

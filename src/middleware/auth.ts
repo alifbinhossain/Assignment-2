@@ -8,23 +8,27 @@ import { sendResponse } from '../utils/sendResponse';
 
 export const AUTH_ERRORS = {
   EMPTY_TOKEN: {
+    success: false,
     statusCode: 401,
     message: 'Authorization token is required.',
   },
 
   INVALID_TOKEN: {
+    success: false,
     statusCode: 401,
     message: 'Invalid or expired authorization token.',
   },
 
   INVALID_USER: {
+    success: false,
     statusCode: 404,
     message: 'User does not exist.',
   },
 
   ROLE_NOT_ALLOWED: {
+    success: false,
     statusCode: 403,
-    message: 'You do not have permission to perform this action.',
+    message: 'You are not authorized to perform this action.',
   },
 };
 
@@ -35,11 +39,7 @@ const authMiddleware = (...roles: USER_ROLE[]) => {
 
       // CHECK IF TOKEN EXISTS
       if (!token) {
-        return sendResponse(res, {
-          statusCode: AUTH_ERRORS['EMPTY_TOKEN'].statusCode,
-          message: AUTH_ERRORS['EMPTY_TOKEN'].message,
-          success: false,
-        });
+        return sendResponse(res, AUTH_ERRORS['EMPTY_TOKEN']);
       }
       // DECODE THE TOKEN AND VERIFY
       const decodedToken = jwt.verify(token, config.secret) as JwtPayload;
@@ -54,22 +54,14 @@ const authMiddleware = (...roles: USER_ROLE[]) => {
 
       // CHECK IF THE USER EXISTS FROM DB
       if (result.rows.length === 0) {
-        return sendResponse(res, {
-          statusCode: AUTH_ERRORS['INVALID_USER'].statusCode,
-          message: AUTH_ERRORS['INVALID_USER'].message,
-          success: false,
-        });
+        return sendResponse(res, AUTH_ERRORS['INVALID_USER']);
       }
 
       const user: IUser = result.rows[0];
 
       // CHECK IF THE USER HAS ALLOWED TO THIS RESOURCES BASED ON THE ROLE
       if (roles.length && !roles.includes(user.role)) {
-        return sendResponse(res, {
-          statusCode: AUTH_ERRORS['ROLE_NOT_ALLOWED'].statusCode,
-          message: AUTH_ERRORS['ROLE_NOT_ALLOWED'].message,
-          success: false,
-        });
+        return sendResponse(res, AUTH_ERRORS['ROLE_NOT_ALLOWED']);
       }
 
       req.user = decodedToken;

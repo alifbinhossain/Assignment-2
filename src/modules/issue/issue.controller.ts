@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import type { IssueFilters } from '../../types';
 import { sendResponse, serverError } from '../../utils/sendResponse';
 import { issueService } from './issue.service';
+import type { JwtPayload } from 'jsonwebtoken';
 
 const createAnIssue = async (req: Request, res: Response) => {
   try {
@@ -66,7 +67,13 @@ const updateAnIssue = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const result = await issueService.updateIssueToDB(id as string, req.body);
+    const user = req.user as JwtPayload;
+
+    const result = await issueService.updateIssueToDB(
+      id as string,
+      user,
+      req.body,
+    );
 
     if (!result) {
       return sendResponse(res, {

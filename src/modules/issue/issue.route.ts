@@ -19,7 +19,11 @@ router.get('/', issueController.getAllIssues);
 router.get('/:id', issueController.getSingleIssue);
 
 // UPDATE ISSUE
-router.patch('/:id', issueController.updateAnIssue);
+router.patch(
+  '/:id',
+  authMiddleware(USER_ROLE.MAINTAINER, USER_ROLE.CONTRIBUTOR),
+  issueController.updateAnIssue,
+);
 
 // DELETE ISSUE
 router.delete(
