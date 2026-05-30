@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
+import type { IssueFilters } from '../../types';
 import { sendResponse, serverError } from '../../utils/sendResponse';
 import { issueService } from './issue.service';
-import type { IssueFilters } from '../../types';
 
 const createAnIssue = async (req: Request, res: Response) => {
   try {
-    const result = await issueService.createIssueToDB(1, req.body);
+    const result = await issueService.createIssueToDB(req?.user?.id, req.body);
     return sendResponse(res, {
       statusCode: 201,
       success: true,
@@ -64,11 +64,23 @@ const getSingleIssue = async (req: Request, res: Response) => {
 
 const updateAnIssue = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
+
+    const result = await issueService.updateIssueToDB(id as string, req.body);
+
+    if (!result) {
+      return sendResponse(res, {
+        statusCode: 404,
+        success: false,
+        message: 'Issue not found',
+      });
+    }
+
     return sendResponse(res, {
       statusCode: 200,
       success: true,
       message: 'Issue updated successfully',
-      data: {},
+      data: result,
     });
   } catch (error) {
     serverError(res, error);
@@ -77,6 +89,18 @@ const updateAnIssue = async (req: Request, res: Response) => {
 
 const deleteAnIssue = async (req: Request, res: Response) => {
   try {
+    const { id } = req.params;
+
+    const result = await issueService.deleteIssueFromDB(id as string);
+
+    if (!result) {
+      return sendResponse(res, {
+        statusCode: 404,
+        success: false,
+        message: 'Issue not found',
+      });
+    }
+
     return sendResponse(res, {
       statusCode: 200,
       success: true,

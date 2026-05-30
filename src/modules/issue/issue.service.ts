@@ -96,8 +96,44 @@ const getSingleIssueFromDB = async (id: string) => {
   return result.rows?.[0] ?? undefined;
 };
 
+const updateIssueToDB = async (id: string, payload: Issue) => {
+  const { title, description, type, status } = payload;
+
+  console.log({ payload });
+
+  const result = await pool.query(
+    `
+  UPDATE issues
+  SET
+  title=COALESCE($1,title),
+  description=COALESCE($2,description),
+  type=COALESCE($3,type),
+  status=COALESCE($4,status)
+  WHERE id=$5
+  RETURNING *  
+    `,
+    [title, description, type, status, id],
+  );
+
+  return result.rows?.[0];
+};
+
+const deleteIssueFromDB = async (id: string) => {
+  const result = await pool.query(
+    `
+    DELETE FROM issues
+    WHERE id=$1 RETURNING *
+    `,
+    [id],
+  );
+
+  return result.rowCount;
+};
+
 export const issueService = {
   createIssueToDB,
   getAllIssuesFromDB,
   getSingleIssueFromDB,
+  updateIssueToDB,
+  deleteIssueFromDB,
 };
